@@ -26,6 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -76,15 +77,19 @@ func insert(out output, path []string, key string, value interface{}) {
 	if len(path) > 0 && path[0] == "root" {
 		path = path[1:]
 	}
-	for _, elem := range path {
-		switch nested := out[elem].(type) {
-		case output:
-			out = nested
-		default:
-			new := output{}
-			out[elem] = new
-			out = new
-		}
+	p := strings.Join(path, ":")
+
+	if p == "" {
+		return
+	}
+
+	switch nested := out[p].(type) {
+	case output:
+		out = nested
+	default:
+		new := output{}
+		out[p] = new
+		out = new
 	}
 	out[key] = value
 }
